@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width initial-scale=1 user-scalable=no">
+        <style>
+            div{
+                max-width: 250px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+            p{
+                text-align: center;
+                margin-bottom: 5px;
+                margin-top: 15px;
+            }
+            .half-button{
+                width: 49%;
+                margin: auto;
+            }
+            .third-button{
+                width: 32%;
+                margin: auto;
+                margin-top: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id=main>
+            <div id=open_close>
+                <p>Open/close</p>
+                <button id=open_button class=half-button>Open</button>
+                <button id=close_button class=half-button>Close</button>
+            </div>
+            <div id=pos_div>
+                <p>Position</p>
+                <input id=pos_slider type=range style="width: 100%;">
+                <button id=set_button style="width: 100%; margin-top: 5px;">Set position</button>
+
+                <button id=left_button class=third-button>&lt;</button>
+                <button id=stop_button class=third-button>Stop</button>
+                <button id=right_button class=third-button>&gt;</button>
+            </div>
+            <div id=spd_div>
+                <p>Speed</p>
+                <input id=spd_slider type=range min="30" max="150" value="60" style="width: 100%;">
+                <button id=set_speed style="width: 100%; margin-top: 5px;">Set speed</button>
+            </div>
+        </div>
+        <script>
+            const server_url = "http://192.168.0.142";
+            var listener_mapping = {
+                "open_button":  server_url + "/open",
+                "close_button": server_url + "/close",
+                "left_button":  server_url + "/setTarget/-1000",
+                "stop_button":  server_url + "/stop",
+                "right_button": server_url + "/setTarget/1000"
+            };
+            function request_page(url) {
+                function resp() {
+                    console.log("clicked");
+                    var xhr = new XMLHttpRequest();
+                    xhr.onreadystatechange = function() {
+                        if (xhr.readyState === 4) {
+                            console.log(xhr.response);
+                        }
+                    }
+                    xhr.open("get", url, true);
+                    xhr.send();
+                }
+                return resp;
+            }
+            function setPercent() {
+                var inp = document.getElementById("pos_slider");
+                var url = server_url + "/setPercentage/" + inp.value;
+                request_page(url)();
+            }
+            function setSpeed() {
+                var inp = document.getElementById("spd_slider");
+                var url = server_url + "/setSpeed/" + inp.value;
+                request_page(url)();
+            }
+
+            for (button_id in listener_mapping) {
+                var btn = document.getElementById(button_id);
+                btn.addEventListener("click", request_page(listener_mapping[button_id]));
+            }
+            
+            document.getElementById("set_button").addEventListener("click", setPercent);
+            document.getElementById("set_speed").addEventListener("click", setSpeed);
+
+            document.getElementById("pos_slider").addEventListener("input", function (){
+                var inp = document.getElementById("pos_slider");
+                var btn = document.getElementById("set_button");
+                btn.innerText = "Set position: " + inp.value + "%";
+            });
+
+            document.getElementById("spd_slider").addEventListener("input", function() {
+                var inp = document.getElementById("spd_slider");
+                var btn = document.getElementById("set_speed");
+                btn.innerText = "Set speed: " + inp.value + " rpm";
+            })
+
+        </script>
+    </body>
+</html>
